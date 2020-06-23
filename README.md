@@ -1,3 +1,1 @@
 # nba-analysis
-
-Hello World!
