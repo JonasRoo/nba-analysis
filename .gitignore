@@ -130,3 +130,6 @@ dmypy.json
 
 # vscode
 .vscode/
+
+# raw json data
+raw_data/
