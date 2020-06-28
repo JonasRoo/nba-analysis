@@ -52,7 +52,6 @@ def fetch_stats_for_seasons(seasons: List[Union[str, int]]):
             time.sleep(time_taken_since)
         
 
-
 def extract_data_from_response(response: Response) -> Tuple[Dict[any, any]]:
     response.raise_for_status()
     raw_data = response.json()
