@@ -12,24 +12,21 @@ SEASONS_QUERY_PARAM_NAME = "seasons[]"
 DELAY_BETWEEN_REQUESTS = 60 // 60
 
 def fetch_stats_for_seasons(seasons: List[Union[str, int]]):
-    curr_dir_name = os.path.dirname(os.path.realpath(__file__))
+    curr_dir_name = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     json_dir_full_path = os.path.join(curr_dir_name, JSON_DIR_FOLDER_NAME)
     subfolder_name = f"seasons_{'_'.join([str(s) for s in seasons])}"
-    print(json_dir_full_path, subfolder_name)
     subfolder_full_path = os.path.join(json_dir_full_path, subfolder_name)
     os.mkdir(subfolder_full_path, mode=0o777)
-    
+
     curr_page, last_page = 1, 10e10
 
     seasons_param = [str(s) for s in seasons]
     query_params = {
         "page": curr_page,
         SEASONS_QUERY_PARAM_NAME: seasons_param,
-        "per_page": 100, 
+        "per_page": 100,
     }
-    
-    printed = False
-    
+
     while curr_page <= last_page:
         time_before_request = time.time()
         query_params["page"] = curr_page
@@ -37,20 +34,17 @@ def fetch_stats_for_seasons(seasons: List[Union[str, int]]):
         print(r.request.url)
         data, meta_data, next_page = extract_data_from_response(r)
         last_page = meta_data.get("total_pages")
-        if not printed:
-            print(f"Last page set to {last_page}.")
-            printed = True
         file_name = f"data_page_{curr_page}.json"
         print(f"Writing file {file_name}...")
         file_utils.dump_json_to_file(
-            data=data, folder_name=subfolder_full_path, file_name=file_name 
+            data=data, folder_name=subfolder_full_path, file_name=file_name
             )
         curr_page = next_page
         time_after_request = time.time()
         time_taken_since = time_after_request - time_before_request
         if time_taken_since < DELAY_BETWEEN_REQUESTS:
             time.sleep(time_taken_since)
-        
+
 
 def extract_data_from_response(response: Response) -> Tuple[Dict[any, any]]:
     response.raise_for_status()
@@ -68,4 +62,4 @@ def extract_data_from_response(response: Response) -> Tuple[Dict[any, any]]:
         return data, meta_data, next_page
 
 if __name__ == "__main__":
-    fetch_stats_for_seasons([2016, 2017, 2018, 2019])
+    fetch_stats_for_seasons([2019])
