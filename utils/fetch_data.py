@@ -33,7 +33,7 @@ def fetch_stats_for_seasons(seasons: List[Union[str, int]]):
         r = requests.get(url=ALL_STATS_ENDPOINT, params=query_params)
         print(r.request.url)
         data, meta_data, next_page = extract_data_from_response(r)
-        last_page = meta_data.get("total_pages")
+        last_page = meta_data.get("total_pages", -1)
         file_name = f"data_page_{curr_page}.json"
         print(f"Writing file {file_name}...")
         file_utils.dump_json_to_file(
