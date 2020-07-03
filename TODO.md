@@ -18,3 +18,21 @@
     - sum this by team, per game
     - some sort of consistent visualization
 
+
+# Last step (07/03)
+    - refactored pipeline into external module
+        - implemented a minimum performance_score (0.01) to prevent negative scores
+        - reorganized a couple of columns, removed unweighted scores
+    - automated data retrieval from `stats` endpoint for any given list of seasons
+
+# Next steps
+    - consider removing people who've only played 1 / 2 games with very low game time (remove "one-hit wonders")
+        > esp. important when averaging on team level
+    - Performance indicator should consider the make% for each throw
+        - "Punish" unsucessful attempts?
+        - Sum of points per this category of points * make%
+        - Every throw "costs" points, and making it redeems them + a bonus?
+            > weight for attemps would be negative value?
+                > should all attempt types be weighted equally?
+    - consider factor: `team chemistry` > need starting five data for this one
+    - TODO's in `pipeline` file
