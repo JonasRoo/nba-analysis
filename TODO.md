@@ -35,4 +35,5 @@
             > weight for attemps would be negative value?
                 > should all attempt types be weighted equally?
     - consider factor: `team chemistry` > need starting five data for this one
+        > should also take into consideration when a player makes his teammates perform better (than avg)
     - TODO's in `pipeline` file
