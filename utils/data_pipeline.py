@@ -37,7 +37,7 @@ COLS_DICT = {
 LOWEST_MINS_PLAYED_TO_CONSIDER = 1
 
 # performance grading constants
-PERF_GRADING_NUMERIC_COLS = ["assists", "blocks", "rebounds", "points", "steals", "turnovers", "personal_fouls"]
+PERF_GRADING_NUMERIC_COLS = ["assists", "blocks", "rebounds", "points", "steals", "turnovers", "personal_fouls","one_pt_attempts","two_pt_attempts","three_pt_attempts"]
 PERF_GRADING_DEF_WEIGHT = 1
 PERF_GRADING_ATTR_WEIGHTS = {
     "points": 1,
@@ -46,6 +46,11 @@ PERF_GRADING_ATTR_WEIGHTS = {
     "assists": 1.5,
     "steals": 3,
     "blocks": 2,
+    
+# new(DAVID)    
+    "one_pt_attempts": -.25,
+    "two_pt_attempts": -.25,
+    "three_pt_attempts": -.25,
 }
 PERF_LOWEST_POSSIBLE_SCORE = 0.001
 
