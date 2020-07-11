@@ -26,6 +26,7 @@
     - automated data retrieval from `stats` endpoint for any given list of seasons
 
 # Next steps
+    - min/max scale the performances in pipeline
     - consider removing people who've only played 1 / 2 games with very low game time (remove "one-hit wonders")
         > esp. important when averaging on team level
     - Performance indicator should consider the make% for each throw
