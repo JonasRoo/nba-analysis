@@ -46,7 +46,7 @@ PERF_GRADING_ATTR_WEIGHTS = {
     "assists": 1.5,
     "steals": 3,
     "blocks": 2,
-    
+    "rebounds": 1.5,
 # new(DAVID)    
     "one_pt_attempts": -.25,
     "two_pt_attempts": -.25,
