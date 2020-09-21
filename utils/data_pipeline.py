@@ -1,3 +1,7 @@
+"""
+This file serves as a preprocessing pipeline for the raw data returned from the `balldontlie` API (serves as a buffer for the official NBA stats API.)
+"""
+
 # imports
 from typing import List, Dict, Any
 
@@ -56,8 +60,28 @@ PERF_GRADING_ATTR_WEIGHTS = {
 PERF_LOWEST_POSSIBLE_SCORE = 0.001
 
 
-# TODO(jonas): docstrings
 def stats_endpoint_data_pipeline(data: List[Dict[str, Any]], min_mins_played: int = None, min_games_played: int = None) -> pd.DataFrame:
+    """Serves as the main entry point for the data pipeline.
+    Converts a list of raw Dictionary's (.json-like format) to a preprocessed pandas DataFrame.
+
+    Steps taken:
+        1. Renames columns after loading List of Dicts to DataFrame
+        2. extract meta data for players and teams to proper columns
+        3. Applies a minutes_played threshold to filter out low-minute ("noisy") entries
+        4. Optionally removes low sample-size players from the dataset
+        5. Applies a custom-made, scaled performance-grading (on player-in-game levek) function to entries 
+
+    Args:
+        data (List[Dict[str, Any]]): One list-object := stats for one player in one game
+        min_mins_played (int, optional): If set, removes stats entries that are below that amount of mins_played in single game. If this is negative, nothing will be filtered. Defaults to an internally set value.
+        min_games_played (int, optional): If not None, removes all of a player's entries from the dataset if he has less than n games played in the entire dataset. Defaults to None.
+
+    Raises:
+        AttributeError: If the list of Dicts is empty or None.
+
+    Returns:
+        pd.DataFrame: A fully preprocessed DataFrame, where one row is a single player's stats for a single game.
+    """
     if not data:
         raise AttributeError("data can't be `None`!")
     df = pd.DataFrame.from_dict(data)
@@ -111,15 +135,35 @@ def stats_endpoint_data_pipeline(data: List[Dict[str, Any]], min_mins_played: in
 
 
 def grade_performance(row: pd.Series) -> float:
+    """Computes a performance score for a single game entry.
+    Multiplies every to-be-graded stat with its weight, and divide that sum by total amount of minutes played. 
+
+    Args:
+        row (pd.Series): A single (player, game) entry within a (preprocessed) DataFrame.
+
+    Returns:
+        float: The performance score for that (player, game).
+    """
     score = 0
+    # For each column we want to grade: multiply with its weight and add it to the running sum
     for col in PERF_GRADING_NUMERIC_COLS:
         score += row[col] * \
             PERF_GRADING_ATTR_WEIGHTS.get(col, PERF_GRADING_DEF_WEIGHT)
 
+    # Finally, weight it by the minutes played in that game
+    # since a player will naturally have a higher score if he has more minutes.
     return score / row["mins_played"]
 
 
 def weighted_grade_performance(row: pd.Series) -> float:
+    """Weights `grade_performance`s computed score with the total points scored for that game.
+
+    Args:
+        row (pd.Series): A single (player, game) entry within a (preprocessed) DataFrame.
+
+    Returns:
+        float: The performance score for that (player, game), weighted with the entire game.
+    """
     unweighted_score = grade_performance(row)
     game_obj = row["game_object"]
     total_game_points = game_obj["home_team_score"] + \
@@ -129,11 +173,27 @@ def weighted_grade_performance(row: pd.Series) -> float:
 
 
 def get_winning_team_id(game: Dict[str, Any]) -> int:
+    """Gets and returns the `team_id` of the winning team.
+
+    Args:
+        game (Dict[str, Any]): The `game_object`.
+
+    Returns:
+        int: The winning team's id.
+    """
     return game["home_team_id"] if game["home_team_score"] > game["visitor_team_score"] \
         else game["visitor_team_id"]
 
 
 def get_share_of_team_points(row: pd.Series) -> float:
+    """Computes the player's share of his team's total scored points for that game.
+
+    Args:
+        row (pd.Series): A single (player, game) entry within a (preprocessed) DataFrame.
+
+    Returns:
+        float: Player's share of its team's points for that game. Between [0, 1].
+    """
     game_obj = row["game_object"]
     team = "home_team" if row["own_team_id"] == game_obj.get(
         "home_team_id") else "visitor_team"
@@ -141,6 +201,15 @@ def get_share_of_team_points(row: pd.Series) -> float:
 
 
 def remove_all_players_with_lower_than_n_games_played(df: pd.DataFrame, n_games_played: int) -> pd.DataFrame:
+    """Removes all entries for players that have less than `n_games_played` entries in the df.
+
+    Args:
+        df (pd.DataFrame): The DataFrame to trim.
+        n_games_played (int): The threshold of unique games played under which a player will be eliminated from the DataFrame.
+
+    Returns:
+        pd.DataFrame: The trimmed DataFrame.
+    """
     assert "player_name" in df.columns, "`player_name` needs to be in DataFrame columns!"
     counts = df.groupby("player_name").agg({"game_id": "nunique"})
     counts = counts.loc[counts.game_id > n_games_played]
